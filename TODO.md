@@ -52,6 +52,7 @@ Project objectives:
 - [ ]   **Other datasets for OOD evaluation:** 
   Professor requested only datasets from some sources (e.g., Zenodo)
   * [IDRiD Dataset](https://zenodo.org/records/17219542)
+  * [APTOS 2019 Blindness Detection Dataset](https://www.kaggle.com/competitions/aptos2019-blindness-detection/data)
   * [FGADR Dataset](https://csyizhou.github.io/FGADR/)
   * [mBRSET, a Mobile Brazilian Retinal Dataset](https://www.physionet.org/content/mbrset/1.0/)
 
