@@ -10,7 +10,7 @@ Project objectives:
 * Try to introduce explainability (GradCAM++) to verify if the models are focusing on relevant features and explain errors
 * Try to improve clinically relevant metrics (sensitivity for severe cases) by tuning thresholds or using temperature scaling.
 
-### 1. Environment setuphttps://zenodo.org/records/17219542
+### 1. Environment setup
 - [ ]   **Fix random seeds**
 - [ ]   **Init `requirements.txt`**
 - [ ]   **Save dataset license info** (requested by the professor)
