@@ -35,7 +35,7 @@ Project objectives:
 
 ### 4. Model architectures and training configurations
 - [x]   **Prepare models:** MicroSENet (scratch, ~100K params) implemented. MobileNetV3 still to do.
-- [ ]   **Configure loss functions:** Set up standard Cross-Entropy for baseline runs and CORAL loss to handle the ordinal classification of severity grades. Use https://github.com/Raschka-research-group/coral-pytorch for CORAL loss implementation.
+- [x]   **Configure loss functions:** Set up standard Cross-Entropy for baseline runs and CORAL loss to handle the ordinal classification of severity grades. Use https://github.com/Raschka-research-group/coral-pytorch for CORAL loss implementation.
 - [ ]   **Ablation study**:
 
     | Experiment ID | Architecture | Freezing Strategy | Loss Function | 
