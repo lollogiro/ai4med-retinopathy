@@ -45,6 +45,9 @@ Project objectives:
     | **Exp_03** | Scratch | Full training | Cross-Entropy |
     | **Exp_04** | Scratch | Full training | CORAL |
 
+    Also, using Accuracy OR AUC as early stopping metric.
+    With the best model obtained, run an ablation study on the different components, such as SE BLOCKS, DLA, and final layer features maps compression (512 -> 256).
+
 ### 5. Training and validation pipeline
 - [x]   **Training:** Implemented class-weighted CE loss with MicroSENet (scratch), AdamW optimizer, 50 epochs, batch size 32, using ImageFolder + v2 transforms.
 - [x]   **Nested cross-validation:** Implemented inner 5-fold StratifiedKFold CV with macro F1 model selection and QWK reporting.
