@@ -1,0 +1,4 @@
+medmnist=3.0.2
+torchinfo=1.8.0
+coral_pytorch=1.4.0
+grad-cam=1.5.5
