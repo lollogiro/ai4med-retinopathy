@@ -4,47 +4,88 @@
 
 **Course:** AI for Medicine - University of Bologna (Prof. Stefano Diciotti), Academic Year 2025/2026
 
-**Code:** [scratch.ipynb](scratch.ipynb) - [EfficientNet.ipynb](EfficientNet.ipynb) - [requirements.txt](requirements.txt)
+[![scratch.ipynb](https://img.shields.io/badge/scratch.ipynb-00008B.svg)](https://github.com/lollogiro/ai4med-retinopathy/blob/main/scratch.ipynb)
+[![EfficientNet.ipynb](https://img.shields.io/badge/EfficientNet.ipynb-00008B.svg)](https://github.com/lollogiro/ai4med-retinopathy/blob/main/EfficientNet.ipynb)
 
-## Abstract
+[![Open in Colab - scratch.ipynb](https://img.shields.io/badge/Open_in_Colab-orange.svg?logo=google-colab&logoColor=white)](https://colab.research.google.com/github/lollogiro/ai4med-retinopathy/blob/main/scratch.ipynb)
+[![Open in Colab - EfficientNet.ipynb](https://img.shields.io/badge/Open_in_Colab-orange.svg?logo=google-colab&logoColor=white)](https://colab.research.google.com/github/lollogiro/ai4med-retinopathy/blob/main/EfficientNet.ipynb)
 
-Diabetic retinopathy (DR) severity grading from retinal fundus images is a natural target for automated screening support. This project compares a custom from-scratch CNN (MicroSENet, ~1.7M parameters) with a pretrained EfficientNetV2-RW-T (12.6M parameters), each trained with cross-entropy (CE) and CORAL ordinal regression on RetinaMNIST. Best test results: MicroSENet-CE QWK 0.7376 / AUC 0.8459, EfficientNetV2-RW-T CE partial fine-tuning accuracy 0.5200 / AUC 0.7924. CE is the more robust multi-class grader and yields the most clinically plausible saliency maps, while CORAL improves ordinal ranking in cross-validation on the pretrained backbone and gives the better-balanced binary referral filter on the from-scratch model.
+---
 
-## 1. Problem and Clinical Context
+> ⚠️ **Educational and Research Use Only**
+> This project is provided strictly for educational and research purposes. The models are trained on public benchmark data and must not be used for clinical decision-making or diagnosis.
 
-Diabetic retinopathy is a microvascular complication of diabetes and a leading cause of preventable blindness in working-age adults. Severity is graded on the ordinal International Clinical Diabetic Retinopathy (ICDR) scale (Wilkinson et al., 2003): 0 = no DR, 1 = mild NPDR (microaneurysms only), 2 = moderate NPDR, 3 = severe NPDR, 4 = proliferative DR (neovascularization). Grades 2-4 are **referable** and require specialist review, so automated grading can support large-scale screening, where false negatives are the costliest errors.
+## Project Overview
+
+Diabetic retinopathy (DR) is a microvascular complication of diabetes and a leading cause of preventable blindness in working-age adults. Its severity is graded on the ordinal International Clinical Diabetic Retinopathy (ICDR) scale (Wilkinson et al., 2003): 0 = no DR, 1 = mild NPDR, 2 = moderate NPDR, 3 = severe NPDR, 4 = proliferative DR. Grades 2-4 are referable and require specialist review, which makes automated severity grading a natural target for large-scale screening support.
+
+This repository implements an end-to-end machine learning pipeline for **5-grade DR severity classification** on RetinaMNIST (MedMNIST v2, derived from DeepDRiD; Yang et al., 2023; Liu et al., 2022): 1,600 retinal fundus images (RGB, resized to 224×224), fixed splits of 1,080 train / 120 validation / 400 test, plus 5-fold stratified cross-validation on the training split. The classes are heavily imbalanced (~45% grade 0, ~6% grade 4), so macro F1, quadratic weighted kappa (QWK), and AUC are the primary metrics. The dataset provides no demographic metadata, so population representativeness cannot be assessed. Released under CC BY 4.0, not for clinical use.
 
 Two design questions are explored:
 
 1. Can a small CNN trained from scratch compete with a much larger ImageNet-pretrained network (EfficientNetV2-RW-T; Tan & Le, 2021) under linear probing and partial fine-tuning?
 2. Does ordinal regression (CORAL; Cao et al., 2020) beat standard cross-entropy with class-balanced weights on an ordinal task?
 
-Evaluation covers 5-fold cross-validation, a held-out test set, clinically motivated screening thresholds, and HiResCAM interpretability.
+<p align="center">
+  <img src="assets/dr_img.webp" alt="Diabetic retinopathy fundus image with HiResCAM overlay" width="600" />
+</p>
+<p align="center">
+  <em>Figure: Retina fundus image containing different retinal lesions associated with diabetic retinopathy. Porwal, P. et al. (2018)</em>
+</p>
 
-## 2. Dataset: RetinaMNIST
+## Key Features
 
-RetinaMNIST (MedMNIST v2; Yang et al., 2023), derived from DeepDRiD (Liu et al., 2022), contains **1,600 retinal fundus images** (1,736×1,824 RGB originals, resized to 224×224) labeled with the five ICDR grades. Fixed splits: **train 1,080 / validation 120 / test 400**, the project adds 5-fold stratified cross-validation on the training split, with validation used only for early stopping and threshold tuning. The classes are heavily imbalanced (~45% grade 0, ~6% grade 4), so accuracy alone is misleading: macro F1, quadratic weighted kappa (QWK), and AUC are the primary metrics. The dataset provides no demographic metadata, so population representativeness cannot be assessed and generalization claims are correspondingly limited.
+- **Data preprocessing** of retinal fundus images (Graham B., 2014: unsharp masking + circular mask, applied offline and cached; per-channel normalization computed on the training set only)
+- **Data augmentation** (random flips, affine rotation/translation, color jitter)
+- **Leakage control** (MD5 duplicate check across splits, fold-local class/importance weights, validation-only threshold tuning; no patient identifiers are available for patient-level separation)
+- **Model training** with a custom **MicroSENet** (~1.7M parameters, trained from scratch: SE blocks, cross-layer feature fusion, head compression, dropout) and a pretrained **EfficientNetV2-RW-T** (12.6M parameters, linear probing / partial fine-tuning)
+- **Ordinal regression** via CORAL heads with importance weights (Cao et al., 2020, Eq. 7) vs standard cross-entropy with class-balanced weights
+- **Evaluation** with accuracy, macro F1, Quadratic Weighted Kappa (QWK), ROC AUC, and clinically motivated binary screening (sensitivity, specificity, PPV, NPV)
+- **Explainability** via HiResCAM saliency maps
 
-Released under **CC BY 4.0** for research and educational purposes only (**not for clinical use**). No patient-identifiable information is contained in the dataset.
+## Getting Started
 
-## 3. Methods
+Follow these steps to reproduce the project:
 
-- **Preprocessing (Ben Graham; Graham, 2014):** unsharp masking + circular mask applied offline and cached as PNGs, per-channel normalization computed on the training set only (recomputed per fold in CV).
-- **Augmentation (train only):** random horizontal/vertical flips, random affine (rotation 90°, translation 10%), color jitter (brightness/contrast 20%). No cropping, to keep the retina in frame.
-- **Leakage control:** MD5 duplicate check across splits (none found), class/importance weights computed inside each fold, thresholds tuned on validation only. RetinaMNIST provides no patient identifiers, so patient-level separation is not possible, the cross-split duplicate check is the available safeguard against exact-image leakage.
-- **Training:** AdamW + cosine annealing, batch size 32, 50 epochs with early stopping on validation AUC, fixed seed and 5-fold CV. Then final training on the full training set. CE uses class-balanced weights, CORAL uses _importance weights_ (Cao et al., 2020, Eq. 7).
-- **Architectures:**
-  - **MicroSENet (~1.7M params, from scratch):** 5 conv blocks, SE blocks, DLA-inspired feature fusion (concatenating block 2 and 5), 256-dim compression bottleneck, mild and final dropout.
-  - **EfficientNetV2-RW-T (12.6M params, ImageNet-pretrained):** linear probing or partial fine-tuning (also last stage fine-tuned).
-  Both trained with CE and CORAL heads.
+1. **Open the notebooks in Google Colab** (GPU recommended) using the badges above, or clone the repository and open them locally with Jupyter.
 
-## 4. Results
+2. **Install dependencies** (first cells of each notebook):
 
-Test set metrics are reported for the final models trained on the full training set, while cross-validation metrics are reported as mean ± std across folds.
+   ```python
+   !pip install medmnist==3.0.2 torchinfo==1.8.0 coral_pytorch==1.4.0 grad-cam==1.5.5
+   ```
 
-For the final operating point selection, thresholds in the screening tables were tuned on the validation set (mainly for Sensitivity$\ge 0.95$) and applied to the test set.
+   `EfficientNet.ipynb` additionally installs `timm==1.0.28`. The same versions are pinned in `requirements.txt`:
 
-### 4.1 Cross-validation
+   ```text
+   medmnist=3.0.2
+   torchinfo=1.8.0
+   coral_pytorch=1.4.0
+   grad-cam=1.5.5
+   timm=1.0.28
+   ```
+
+3. **Run `scratch.ipynb` first**: it applies the offline Ben Graham preprocessing and caches the enhanced images as PNGs under `PREPROCESSED_DIR = "/content/preprocessed"` (a Colab path, change it when running locally). `EfficientNet.ipynb` expects the same preprocessed layout. RetinaMNIST is downloaded automatically by `medmnist` on first use.
+
+4. **Reproducibility**: `SEED=42` throughout (`set_seed` per experiment, seeded DataLoader workers, deterministic algorithms). No checkpoints are saved, metrics and HiResCAM figures are printed inside the notebooks. Every number in this README comes from running the notebooks top-to-bottom.
+
+## Repository Structure
+
+```
+├── scratch.ipynb                           # MicroSENet experiments
+├── EfficientNet.ipynb                      # EfficientNetV2-RW-T experiments
+├── requirements.txt                        # Pinned dependency versions
+├── README.md                               # This file
+├── assets                                  # Images used in the report
+├── .gitignore                              # Ignore cache and venv files
+└── AI_for_Medicine_Report_Bonafe_Girotti.pdf    # Project report
+```
+
+## Results
+
+Test set metrics are reported for the final models trained on the full training set, while cross-validation metrics are reported as mean $\pm$ std across folds. Screening thresholds were tuned on the validation set (Sensitivity $\geq$ 0.95) and then applied to the test set.
+
+### Cross-validation
 
 _Table 1: 5-fold cross-validation, mean $\pm$ std._
 
@@ -57,9 +98,9 @@ _Table 1: 5-fold cross-validation, mean $\pm$ std._
 | EfficientNetV2-RW-T | CE, partial fine-tuning    | 0.4722 $\pm$ 0.0343     | 0.5780 $\pm$ 0.0669     | 0.7785 $\pm$ 0.0268     |
 | EfficientNetV2-RW-T | CORAL, partial fine-tuning | 0.5074 $\pm$ 0.0130     | 0.6559 $\pm$ 0.0135     | 0.7634 $\pm$ 0.0111     |
 
-### 4.2 Test set
+### Test set
 
-_Table 2: Test set (n=400)._
+_Table 2: Test set (n=400). Linear-probing variants were not evaluated on the test set._
 
 | Model               | Params | Config                     | Accuracy   | AUC        | QWK        | Macro F1   |
 | ------------------- | ------ | -------------------------- | ---------- | ---------- | ---------- | ---------- |
@@ -70,64 +111,28 @@ _Table 2: Test set (n=400)._
 
 The two MicroSENet heads differ markedly on rare classes: the CE model keeps sensitivity on minority grades (**Grade 1 Recall 0.630, Grade 4 Recall 0.700**), while the CORAL model's accuracy is driven by the majority class (Grade 0 Recall 0.851) at the cost of collapsing Grade 1 (**Recall 0.022, F1 0.030**). Overall, the from-scratch MicroSENet-CE achieves the best test **QWK (0.7376)** and **AUC (0.8459)** of all models despite ~7× fewer parameters. The pretrained EfficientNet CE partial fine-tuning version wins on accuracy (0.5200) and macro F1 (0.4460).
 
-### 4.3 Binary screening (referable = grades 2-4)
+### Binary screening (non-referable = grades 0-1 | referable = grades 2-4)
 
-_Table 3: Binary screening on the test set. The Se $\ge$ 0.95 threshold was tuned on the validation set and then applied to the test set._
+_Table 3: Binary screening on the test set. The Se $\geq$ 0.95 threshold was tuned on the validation set and then applied to the test set._
 
-| Model               | Config                     | Threshold (Se ≥ 0.95) | Sensitivity | Specificity | PPV       | NPV       |
+| Model               | Config                     | Threshold (Se $\geq$ 0.95) | Sensitivity | Specificity | PPV       | NPV       |
 | ------------------- | -------------------------- | --------------------- | ----------- | ----------- | --------- | --------- |
 | MicroSENet          | CE                         | 0.173                 | **0.978**   | 0.514       | 0.622     | 0.966     |
 | MicroSENet          | CORAL                      | 0.229                 | 0.978       | 0.609       | 0.672     | **0.971** |
 | EfficientNetV2-RW-T | CE, partial fine-tuning    | 0.108                 | 0.967       | 0.259       | 0.516     | 0.905     |
 | EfficientNetV2-RW-T | CORAL, partial fine-tuning | 0.252                 | 0.900       | **0.709**   | **0.717** | 0.897     |
 
-Both MicroSENet heads reach 0.978 sensitivity for referable DR, the CORAL head is the more specific filter (Se 0.978 / Sp 0.609 / PPV 0.672 vs CE 0.978 / 0.514 / 0.622).
+Both MicroSENet heads reach 0.978 sensitivity for referable DR; the CORAL head is the more specific filter (Se 0.978 / Sp 0.609 / PPV 0.672 vs CE 0.978 / 0.514 / 0.622).
 
-On EfficientNet, CE maximizes sensitivity (0.967) at the cost of low specificity (0.259), CORAL trades sensitivity for a much more balanced operating point with the best PPV (0.717).
+On EfficientNet, CE maximizes sensitivity (0.967) at the cost of low specificity (0.259); CORAL trades sensitivity for a much more balanced operating point with the best PPV (0.717).
 
-<!-- ## 5. Discussion (TODO da rivedere insieme)
-
-**Ordinal regression is a trade-off.** CORAL improves QWK in CV on the pretrained backbone (CORAL-PFT 0.6559 vs CE-PFT 0.5780), but not on MicroSENet (0.6452 vs 0.6727), and CE-PFT beats CORAL-PFT on test QWK (0.6749 vs 0.6497). On small models CORAL collapses the rare intermediate grades: grade-1 recall 0.022 vs CE 0.630 on MicroSENet, and CORAL-PFT test macro F1 (0.2854) far below CE-PFT (0.4460).
-
-**Lightweight from-scratch models are competitive.** MicroSENet-CE attains the best test QWK and AUC of all models despite ~7× fewer parameters than the ImageNet-pretrained network, which leads on accuracy and macro F1. Heavy regularization (SE, DLA, dropout, augmentation, no cropping) lets a small CNN hold its own, relevant for low-resource screening deployments.
-
-**For binary screening the objective flips.** Sensitivity is paramount (never miss disease), but specificity matters to avoid flooding clinics with false referrals. The CORAL head is the better-balanced filter on MicroSENet (Se 0.978 / Sp 0.609 / PPV 0.672 vs CE 0.978 / 0.514 / 0.622), on EfficientNetV2-RW-T, CE-PFT maximizes sensitivity (0.967) at low specificity (0.259) while CORAL-PFT is balanced (0.900 / 0.709, best PPV 0.717). Thresholds were selected on the validation set via the Youden index and sensitivity/specificity constraints (Youden, 1950).
-
-**Interpretability supports CE.** HiResCAM maps show the CE model attends to clinically plausible structures (vascular network in grades 0-2, neovascularization/hemorrhages in grades 3-4), whereas CORAL cannot visually separate grades 0 and 1, an argument for CE where explanations matter as much as accuracy.
-
-**Limitations.** Small dataset (1,600 images), $224\times224$ downsampling, single benchmark, thresholds calibrated on 120 validation samples, the results are research findings from a public benchmark, not clinically validated. -->
-
-<!--## 6. Conclusions (TODO da rivedere insieme)
-
-Cross-entropy with class-balanced weights is the more robust objective for multi-class severity grading (best test QWK and AUC, sensitivity on rare grades, and clinically plausible saliency maps), while CORAL helps ordinal ranking on pretrained backbones but collapses intermediate grades on small imbalanced models. A 1.7M-parameter network trained from scratch matching a 7× larger pretrained model shows that lightweight, heavily regularized CNNs are a viable direction for resource-constrained screening.
-
-Future work: larger and external datasets, recalibrated thresholds on real screening populations, and quantitative attention evaluation. -->
-
-## 7. Ethics, Privacy, and Compliance
+## Ethics, Privacy, and Compliance
 
 - **Dataset license and intended use.** RetinaMNIST is released under CC BY 4.0 for research and educational purposes. **This project is a research exercise, not a clinical tool**: the models must not be used for clinical decision-making or diagnosis.
-- **Privacy.** RetinaMNIST contains no patient-identifiable information, it is a de-identified derivative of DeepDRiD (Liu et al., 2022). No external or private data was collected, all processing ran on public benchmark data in Google Colab.
+- **Privacy.** RetinaMNIST contains no patient-identifiable information; it is a de-identified derivative of DeepDRiD (Liu et al., 2022). No external or private data was collected; all processing ran on public benchmark data in Google Colab.
 - **Attribution.** CC BY 4.0 requires attribution to MedMNIST (Yang et al., 2023) and DeepDRiD (Liu et al., 2022).
 - **Software licenses.** All dependencies are permissively licensed: `medmnist`, `timm` (Apache-2.0), `coral-pytorch`, `torchinfo`, `grad-cam` (MIT).
-- **Explainability responsibility.** Interpretability was assessed qualitatively with HiResCAM because medical deployment demands plausible explanations, the reported operating point selection and thresholds are dataset-specific and would require recalibration on real screening populations.
-
-## 8. Reproducibility (TODO da rivedere insieme)
-
-Run the notebooks top-to-bottom in **Google Colab** (GPU), every number in this README comes from their outputs.
-
-1. **Install dependencies** (first cells of each notebook):
-
-   ```python
-   !pip install medmnist==3.0.2 torchinfo==1.8.0 coral_pytorch==1.4.0 grad-cam==1.5.5
-   ```
-
-   `EfficientNet.ipynb` additionally installs `timm==1.0.28`, the same versions are in [requirements.txt](requirements.txt).
-
-2. **Run `scratch.ipynb` first**: it applies the offline Ben Graham preprocessing and caches PNGs under `PREPROCESSED_DIR = "/content/preprocessed"` (Colab path), `EfficientNet.ipynb` expects the same layout. RetinaMNIST is downloaded automatically by `medmnist` on first use.
-
-3. **Determinism.** `SEED=42` throughout (`set_seed` per experiment, seeded DataLoader workers, deterministic algorithms).
-
-4. **Artifacts.** No checkpoints are saved, metrics and HiResCAM figures are printed/displayed inside the notebooks.
+- **Explainability responsibility.** Interpretability was assessed qualitatively with HiResCAM because medical deployment demands plausible explanations; the reported thresholds are dataset-specific and would require recalibration on real screening populations.
 
 ## References
 
@@ -137,4 +142,4 @@ Run the notebooks top-to-bottom in **Google Colab** (GPU), every number in this 
 - Tan, M., & Le, Q. V. (2021). EfficientNetV2: Smaller models and faster training. _Proceedings of the 38th International Conference on Machine Learning (ICML)_. https://arxiv.org/abs/2104.00298
 - Wilkinson, C. P., Ferris, F. L., Klein, R. E., Lee, P. P., Agardh, C. D., Davis, M., et al. (2003). Proposed international clinical diabetic retinopathy and diabetic macular edema disease severity scales. _Ophthalmology, 110_(9), 1677-1682.
 - Yang, J., Shi, R., Wei, D., Liu, Z., Zhao, L., Ke, B., et al. (2023). MedMNIST v2: A large-scale lightweight benchmark for 2D and 3D biomedical image classification. _Scientific Data, 10_, 41. https://doi.org/10.1038/s41597-022-01721-8
-- Youden, W. J. (1950). Index for rating diagnostic tests. _Cancer, 3_(1), 32-35. https://doi.org/10.1002/1097-0142(1950)3:1<32::AID-CNCR2820030106>3.0.CO;2-3
+- Porwal, P., Pachade, S., Kamble, R., Kokare, M., Deshmukh, G., Sahasrabuddhe, V., & Meriaudeau, F. (2018). Indian Diabetic Retinopathy Image Dataset (IDRiD): A Database for Diabetic Retinopathy Screening Research. Data, 3(3), 25. https://doi.org/10.3390/data3030025
