@@ -91,12 +91,12 @@ _Table 1: 5-fold cross-validation, mean $\pm$ std._
 
 | Model               | Config                     | Accuracy                | QWK                     | AUC                     |
 | ------------------- | -------------------------- | ----------------------- | ----------------------- | ----------------------- |
-| MicroSENet (~1.7M)  | CE                         | 0.5093 $\pm$ 0.0356     | **0.6727 $\pm$ 0.0265** | **0.8209 $\pm$ 0.0115** |
-| MicroSENet (~1.7M)  | CORAL                      | **0.5102 $\pm$ 0.0269** | 0.6452 $\pm$ 0.0280     | 0.7475 $\pm$ 0.0160     |
-| EfficientNetV2-RW-T | CE, linear probing         | 0.4241 $\pm$ 0.0451     | 0.5013 $\pm$ 0.0290     | 0.7142 $\pm$ 0.0298     |
-| EfficientNetV2-RW-T | CORAL, linear probing      | 0.4685 $\pm$ 0.0153     | 0.6024 $\pm$ 0.0231     | 0.7291 $\pm$ 0.0139     |
-| EfficientNetV2-RW-T | CE, partial fine-tuning    | 0.4722 $\pm$ 0.0343     | 0.5780 $\pm$ 0.0669     | 0.7785 $\pm$ 0.0268     |
-| EfficientNetV2-RW-T | CORAL, partial fine-tuning | 0.5074 $\pm$ 0.0130     | 0.6559 $\pm$ 0.0135     | 0.7634 $\pm$ 0.0111     |
+| MicroSENet (~1.7M)  | CE                         | 0.5093 $\pm$ 0.0356     | 0.6727 $\pm$ 0.0265     | 0.8209 $\pm$ 0.0115     |
+| MicroSENet (~1.7M)  | CORAL                      | 0.5102 $\pm$ 0.0269     | 0.6452 $\pm$ 0.0280     | 0.7475 $\pm$ 0.0160     |
+| EfficientNetV2-RW-T | CE, linear probing         | 0.5093 $\pm$ 0.0209     | 0.5640 $\pm$ 0.0394     | 0.7887 $\pm$ 0.0120     |
+| EfficientNetV2-RW-T | CORAL, linear probing      | 0.4491 $\pm$ 0.0325     | 0.4870 $\pm$ 0.0294     | 0.6826 $\pm$ 0.0206     |
+| EfficientNetV2-RW-T | CE, partial fine-tuning    | **0.5685 $\pm$ 0.0333** | **0.7225 $\pm$ 0.0238** | **0.8550 $\pm$ 0.0122** |
+| EfficientNetV2-RW-T | CORAL, partial fine-tuning | 0.5019 $\pm$ 0.0063     | 0.6631 $\pm$ 0.0209     | 0.7623 $\pm$ 0.0136     |
 
 ### Test set
 
@@ -104,27 +104,27 @@ _Table 2: Test set (n=400). Linear-probing variants were not evaluated on the te
 
 | Model               | Params | Config                     | Accuracy   | AUC        | QWK        | Macro F1   |
 | ------------------- | ------ | -------------------------- | ---------- | ---------- | ---------- | ---------- |
-| MicroSENet          | ~1.7M  | CE                         | 0.4850     | **0.8459** | **0.7376** | 0.4323     |
+| MicroSENet          | ~1.7M  | CE                         | 0.4850     | 0.8459     | **0.7376** | 0.4323     |
 | MicroSENet          | ~1.7M  | CORAL                      | 0.5125     | 0.7769     | 0.7110     | 0.3427     |
-| EfficientNetV2-RW-T | 12.6M  | CE, partial fine-tuning    | **0.5200** | 0.7924     | 0.6749     | **0.4460** |
-| EfficientNetV2-RW-T | 12.6M  | CORAL, partial fine-tuning | 0.4800     | 0.7557     | 0.6497     | 0.2854     |
+| EfficientNetV2-RW-T | 12.6M  | CE, partial fine-tuning    | **0.5450** | **0.8551** | 0.7076     | **0.4777** |
+| EfficientNetV2-RW-T | 12.6M  | CORAL, partial fine-tuning | 0.4850     | 0.7503     | 0.6452     | 0.2939     |
 
-The two MicroSENet heads differ markedly on rare classes: the CE model keeps sensitivity on minority grades (**Grade 1 Recall 0.630, Grade 4 Recall 0.700**), while the CORAL model's accuracy is driven by the majority class (Grade 0 Recall 0.851) at the cost of collapsing Grade 1 (**Recall 0.022, F1 0.030**). Overall, the from-scratch MicroSENet-CE achieves the best test **QWK (0.7376)** and **AUC (0.8459)** of all models despite ~7× fewer parameters. The pretrained EfficientNet CE partial fine-tuning version wins on accuracy (0.5200) and macro F1 (0.4460).
+The two MicroSENet heads differ markedly on rare classes: the CE model keeps sensitivity on minority grades (**Grade 1 Recall 0.630, Grade 4 Recall 0.700**), while the CORAL model's accuracy is driven by the majority class (Grade 0 Recall 0.851) at the cost of collapsing Grade 1 (**Recall 0.022, F1 0.030**). The EfficientNetV2 models mirror this divergence: while Cross-Entropy maintains a more stable multi-class distribution, despite struggling on **Grade 2 (Recall 0.391)** and **Grade 4 (Recall 0.250)**, CORAL suffers from severe polarization, collapsing intermediate grades into the healthy majority while pulling adjacent stages into the severe extreme. Overall, the from-scratch MicroSENet-CE achieves the best test **QWK (0.7376)** of all models despite ~7× fewer parameters. The pretrained EfficientNet CE partial fine-tuning version wins on **accuracy (0.5450)**, **AUC (0.8551)** and **macro F1 (0.4777)**.
 
 ### Binary screening (non-referable = grades 0-1 | referable = grades 2-4)
 
 _Table 3: Binary screening on the test set. The Se $\geq$ 0.95 threshold was tuned on the validation set and then applied to the test set._
 
 | Model               | Config                     | Threshold (Se $\geq$ 0.95) | Sensitivity | Specificity | PPV       | NPV       |
-| ------------------- | -------------------------- | --------------------- | ----------- | ----------- | --------- | --------- |
-| MicroSENet          | CE                         | 0.173                 | **0.978**   | 0.514       | 0.622     | 0.966     |
-| MicroSENet          | CORAL                      | 0.229                 | 0.978       | 0.609       | 0.672     | **0.971** |
-| EfficientNetV2-RW-T | CE, partial fine-tuning    | 0.108                 | 0.967       | 0.259       | 0.516     | 0.905     |
-| EfficientNetV2-RW-T | CORAL, partial fine-tuning | 0.252                 | 0.900       | **0.709**   | **0.717** | 0.897     |
+| ------------------- | -------------------------- | -------------------------- | ----------- | ----------- | --------- | --------- |
+| MicroSENet          | CE                         | 0.173                      | **0.978**   | 0.514       | 0.622     | 0.966     |
+| MicroSENet          | CORAL                      | 0.229                      | 0.978       | 0.609       | 0.672     | **0.971** |
+| EfficientNetV2-RW-T | CE, partial fine-tuning    | 0.202                      | 0.972       | 0.455       | 0.593     | 0.952     |
+| EfficientNetV2-RW-T | CORAL, partial fine-tuning | 0.243                      | 0.906       | **0.655**   | **0.682** | 0.894     |
 
 Both MicroSENet heads reach 0.978 sensitivity for referable DR; the CORAL head is the more specific filter (Se 0.978 / Sp 0.609 / PPV 0.672 vs CE 0.978 / 0.514 / 0.622).
 
-On EfficientNet, CE maximizes sensitivity (0.967) at the cost of low specificity (0.259); CORAL trades sensitivity for a much more balanced operating point with the best PPV (0.717).
+On EfficientNet, CE maximizes sensitivity (0.972) at the cost of low specificity (0.455); CORAL trades sensitivity for a much more balanced operating point with the best PPV (0.682).
 
 ## Ethics, Privacy, and Compliance
 
