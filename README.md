@@ -95,7 +95,7 @@ _Table 1: 5-fold cross-validation, mean $\pm$ std._
 | MicroSENet (~1.7M)  | CORAL                      | 0.5102 $\pm$ 0.0269     | 0.6452 $\pm$ 0.0280     | 0.7475 $\pm$ 0.0160     |
 | EfficientNetV2-RW-T | CE, linear probing         | 0.5093 $\pm$ 0.0209     | 0.5640 $\pm$ 0.0394     | 0.7887 $\pm$ 0.0120     |
 | EfficientNetV2-RW-T | CORAL, linear probing      | 0.4491 $\pm$ 0.0325     | 0.4870 $\pm$ 0.0294     | 0.6826 $\pm$ 0.0206     |
-| EfficientNetV2-RW-T | CE, partial fine-tuning    | **0.5685 $\pm$ 0.0333** | **0.7225 $\pm$ 0.0238** | **0.8550 $\pm$ 0.0122** |
+| EfficientNetV2-RW-T | CE, partial fine-tuning    | **0.5685 $\pm$ 0.0333** | **0.7225 $\pm$ 0.0238** | **0.8549 $\pm$ 0.0123** |
 | EfficientNetV2-RW-T | CORAL, partial fine-tuning | 0.5019 $\pm$ 0.0063     | 0.6631 $\pm$ 0.0209     | 0.7623 $\pm$ 0.0136     |
 
 ### Test set
